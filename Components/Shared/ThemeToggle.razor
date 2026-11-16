@@ -1,0 +1,41 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<button type="button" class="btn btn-outline-light" disabled="@(Module is null)" aria-pressed="@(Dark ? "true" : "false")" @onclick="ToggleAsync">
+    @(Dark ? "Modo claro" : "Modo oscuro")
+</button>
+
+@code {
+    private IJSObjectReference? Module;
+    private bool Dark;
+    private bool Disposed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/browser.js");
+            if (Disposed) { await module.DisposeAsync(); return; }
+            Module = module;
+            Dark = await Module.InvokeAsync<string>("readTheme") == "dark";
+            StateHasChanged();
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private async Task ToggleAsync()
+    {
+        if (Module is null) return;
+        var dark = !Dark;
+        try { await Module.InvokeVoidAsync("setTheme", dark ? "dark" : "light"); Dark = dark; }
+        catch (JSDisconnectedException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Disposed = true;
+        if (Module is not null)
+            try { await Module.DisposeAsync(); } catch (JSDisconnectedException) { }
+    }
+}

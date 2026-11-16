@@ -1,0 +1,2 @@
+<div class="col-md-6"><div class="detail-item"><span>@Label</span><strong>@(string.IsNullOrWhiteSpace(Value) ? "—" : Value)</strong></div></div>
+@code { [Parameter] public string Label { get; set; } = ""; [Parameter] public string? Value { get; set; } }

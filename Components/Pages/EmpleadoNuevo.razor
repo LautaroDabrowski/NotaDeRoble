@@ -1,0 +1,42 @@
+@page "/empleados/nuevo"
+@inject SessionService Session
+@inject IEmpleadoService Service
+@inject CatalogoService Catalogos
+@inject NavigationManager Nav
+@inject ILogger<EmpleadoNuevo> Logger
+
+<PageTitle>Nuevo empleado · InstitutoBlazor</PageTitle>
+
+@if (!Session.IsAuthenticated) { <RedirectToLogin /> }
+else
+{
+<section class="container py-4"><div class="card shadow-sm border-0"><div class="card-body p-4"><h1 class="page-title mb-4">Registro de empleados</h1>
+    <AlertMessage Message="@Error" Type="danger" OnClosed="() => Error = null" />
+    @if (Loading) { <p role="status">Cargando catálogos…</p> }
+    else if (Departamentos.Count > 0 && Localidades.Count > 0) { <EmployeeForm Model="Empleado" Departamentos="Departamentos" Localidades="Localidades" OnSubmit="GuardarAsync" /> }
+    else { <p>Los catálogos no están disponibles.</p><button class="btn btn-wine" @onclick="CargarAsync">Reintentar</button> }
+</div></div></section>
+}
+
+@code {
+    private Empleado Empleado = new();
+    private List<Departamento> Departamentos = [];
+    private List<Localidad> Localidades = [];
+    private string? Error;
+    private bool Loading;
+    protected override async Task OnInitializedAsync() { if (Session.IsAuthenticated) await CargarAsync(); }
+    private async Task CargarAsync()
+    {
+        Loading = true;
+        Error = null;
+        try { Departamentos = await Catalogos.ObtenerDepartamentosAsync(); Localidades = await Catalogos.ObtenerLocalidadesAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Error al cargar catálogos"); Error = "No se pudieron cargar los catálogos de la base de datos."; }
+        finally { Loading = false; }
+    }
+    private async Task GuardarAsync(Empleado model)
+    {
+        var result = await Service.CrearAsync(model);
+        if (result.Ok) Nav.NavigateTo("/empleados");
+        else Error = result.Mensaje;
+    }
+}

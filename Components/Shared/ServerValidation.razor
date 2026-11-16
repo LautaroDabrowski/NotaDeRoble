@@ -1,0 +1,34 @@
+@implements IDisposable
+
+@code {
+    [CascadingParameter] public EditContext CurrentEditContext { get; set; } = default!;
+    private ValidationMessageStore Messages = default!;
+
+    protected override void OnInitialized()
+    {
+        Messages = new(CurrentEditContext);
+        CurrentEditContext.OnValidationRequested += ClearAll;
+        CurrentEditContext.OnFieldChanged += ClearField;
+    }
+
+    public void DisplayErrors(IEnumerable<FluentValidation.Results.ValidationFailure> errors)
+    {
+        Messages.Clear();
+        foreach (var error in errors)
+            Messages.Add(CurrentEditContext.Field(error.PropertyName), error.ErrorMessage);
+        CurrentEditContext.NotifyValidationStateChanged();
+    }
+
+    private void ClearAll(object? sender, ValidationRequestedEventArgs args) => Messages.Clear();
+    private void ClearField(object? sender, FieldChangedEventArgs args)
+    {
+        Messages.Clear(args.FieldIdentifier);
+        CurrentEditContext.NotifyValidationStateChanged();
+    }
+
+    public void Dispose()
+    {
+        CurrentEditContext.OnValidationRequested -= ClearAll;
+        CurrentEditContext.OnFieldChanged -= ClearField;
+    }
+}

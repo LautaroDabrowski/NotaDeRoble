@@ -1,0 +1,31 @@
+@page "/empleados/ver/{Id:int}"
+@inject SessionService Session
+@inject IEmpleadoService Service
+@inject ILogger<EmpleadoVer> Logger
+@inject NavigationManager Nav
+
+<PageTitle>Detalle de empleado · InstitutoBlazor</PageTitle>
+
+@if (!Session.IsAuthenticated) { <RedirectToLogin /> }
+else if (Loading) { <p class="container py-4" role="status">Cargando empleado…</p> }
+else if (Error is not null) { <section class="container py-4"><AlertMessage Message="@Error" Type="danger" /><button class="btn btn-wine" @onclick="CargarAsync">Reintentar</button></section> }
+else if (Empleado is null) { <div class="container py-5"><div class="alert alert-warning">No se encontró el empleado.</div><a href="/empleados">Volver</a></div> }
+else
+{
+<section class="container py-4"><div class="card shadow-sm border-0 detail-card"><div class="card-body p-4"><h1 class="page-title mb-4">Detalle del empleado</h1><div class="row g-3"><DetailItem Label="DNI" Value="@Empleado.Dni" /><DetailItem Label="Nombre" Value="@Empleado.Nombre" /><DetailItem Label="Apellido" Value="@Empleado.Apellido" /><DetailItem Label="Teléfono" Value="@Empleado.Telefono" /><DetailItem Label="Dirección" Value="@Empleado.Direccion" /><DetailItem Label="Departamento" Value="@Empleado.Departamento?.Nombre" /><DetailItem Label="Localidad" Value="@Empleado.Localidad?.Nombre" /><DetailItem Label="Código postal" Value="@Empleado.CodPostal.ToString()" /></div><div class="d-flex flex-wrap gap-2 mt-4"><a class="btn btn-wine" href="/empleados">Volver</a><a class="btn btn-outline-secondary" href="/empleados/editar/@Id">Editar</a><CopyLink Url="@Nav.Uri" /></div></div></div></section>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Empleado? Empleado;
+    private string? Error;
+    private bool Loading;
+    protected override async Task OnParametersSetAsync() { if (Session.IsAuthenticated) await CargarAsync(); }
+    private async Task CargarAsync()
+    {
+        Loading = true; Error = null;
+        try { Empleado = await Service.ObtenerPorIdAsync(Id); }
+        catch (Exception ex) { Logger.LogError(ex, "Error al obtener empleado {Id}", Id); Error = "No se pudo cargar el detalle. Comprobá la conexión a la base de datos."; }
+        finally { Loading = false; }
+    }
+}

@@ -1,0 +1,4 @@
+fieldset { min-width: 0; }
+fieldset ::deep .validation-message { color: var(--bs-danger-text-emphasis); font-size: .9rem; margin-top: .3rem; }
+fieldset ::deep .invalid { border-color: var(--bs-danger); }
+fieldset ::deep .valid.modified { border-color: var(--bs-success); }

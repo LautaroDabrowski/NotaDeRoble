@@ -1,0 +1,9 @@
+@page "/"
+@inject SessionService Session
+@inject NavigationManager Nav
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) Nav.NavigateTo(Session.IsAuthenticated ? "/empleados" : "/login", replace: true);
+    }
+}

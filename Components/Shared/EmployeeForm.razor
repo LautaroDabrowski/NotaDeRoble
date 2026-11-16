@@ -1,0 +1,68 @@
+@inject FluentValidation.IValidator<Empleado> Validator
+@inject ILogger<EmployeeForm> Logger
+
+@* Formulario compartido por alta y edición. Las reglas de base de datos se esperan antes de guardar. *@
+<EditForm Model="Model" OnValidSubmit="HandleSubmit" FormName="empleado">
+    <DataAnnotationsValidator />
+    <ServerValidation @ref="ServerValidator" />
+    <ValidationSummary class="alert alert-danger" />
+    <AlertMessage Message="@Error" Type="danger" OnClosed="() => Error = null" />
+
+    <fieldset disabled="@Saving" class="row g-3">
+        <legend class="visually-hidden">Datos del empleado</legend>
+        <div class="col-md-6"><label for="dni" class="form-label">DNI</label><InputText id="dni" class="form-control" inputmode="numeric" maxlength="8" @bind-Value="Model.Dni" /><ValidationMessage For="() => Model.Dni" /></div>
+        <div class="col-md-6"><label for="telefono" class="form-label">Teléfono</label><InputText id="telefono" type="tel" class="form-control" placeholder="+541134567890" @bind-Value="Model.Telefono" /><ValidationMessage For="() => Model.Telefono" /></div>
+        <div class="col-md-6"><label for="nombre" class="form-label">Nombre</label><InputText id="nombre" class="form-control" maxlength="100" @bind-Value="Model.Nombre" /><ValidationMessage For="() => Model.Nombre" /></div>
+        <div class="col-md-6"><label for="apellido" class="form-label">Apellido</label><InputText id="apellido" class="form-control" maxlength="100" @bind-Value="Model.Apellido" /><ValidationMessage For="() => Model.Apellido" /></div>
+        <div class="col-md-6"><label for="departamento" class="form-label">Departamento</label>
+            <InputSelect id="departamento" class="form-select" @bind-Value="Model.IdDepartamento">
+                <option value="0">Seleccione...</option>
+                @foreach (var d in Departamentos) { <option value="@d.IdDepartamento">@d.Nombre</option> }
+            </InputSelect>
+            <ValidationMessage For="() => Model.IdDepartamento" />
+        </div>
+        <div class="col-md-6"><label for="localidad" class="form-label">Localidad</label>
+            <InputSelect id="localidad" class="form-select" @bind-Value="Model.CodPostal">
+                <option value="0">Seleccione...</option>
+                @foreach (var l in Localidades) { <option value="@l.CodPostal">@l.Nombre (@l.CodPostal)</option> }
+            </InputSelect>
+            <ValidationMessage For="() => Model.CodPostal" />
+        </div>
+        <div class="col-12"><label for="direccion" class="form-label">Dirección</label><InputText id="direccion" class="form-control" maxlength="200" @bind-Value="Model.Direccion" /><ValidationMessage For="() => Model.Direccion" /></div>
+    </fieldset>
+
+    <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-wine" type="submit" disabled="@Saving">@(Saving ? "Guardando..." : SubmitText)</button>
+        <a class="btn btn-outline-secondary" href="/empleados">Volver</a>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired] public Empleado Model { get; set; } = new();
+    [Parameter] public IReadOnlyList<Departamento> Departamentos { get; set; } = [];
+    [Parameter] public IReadOnlyList<Localidad> Localidades { get; set; } = [];
+    [Parameter] public string SubmitText { get; set; } = "Guardar empleado";
+    [Parameter] public EventCallback<Empleado> OnSubmit { get; set; }
+    private bool Saving;
+    private string? Error;
+    private ServerValidation? ServerValidator;
+
+    private async Task HandleSubmit()
+    {
+        if (Saving) return;
+        Saving = true;
+        Error = null;
+        try
+        {
+            var result = await Validator.ValidateAsync(Model);
+            if (!result.IsValid) ServerValidator?.DisplayErrors(result.Errors);
+            else await OnSubmit.InvokeAsync(Model);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al procesar el formulario de empleado");
+            Error = "No se pudo guardar. Comprobá la conexión con la base de datos y reintentá.";
+        }
+        finally { Saving = false; }
+    }
+}

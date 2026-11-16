@@ -1,0 +1,50 @@
+@page "/empleados/editar/{Id:int}"
+@inject SessionService Session
+@inject IEmpleadoService Service
+@inject CatalogoService Catalogos
+@inject NavigationManager Nav
+@inject ILogger<EmpleadoEditar> Logger
+
+<PageTitle>Editar empleado · InstitutoBlazor</PageTitle>
+
+@if (!Session.IsAuthenticated) { <RedirectToLogin /> }
+else if (Loading) { <p class="container py-4" role="status">Cargando empleado…</p> }
+else if (LoadFailed) { <section class="container py-4"><AlertMessage Message="@Error" Type="danger" /><button class="btn btn-wine" @onclick="CargarAsync">Reintentar</button></section> }
+else if (Empleado is null) { <div class="container py-5"><div class="alert alert-warning">No se encontró el empleado.</div><a href="/empleados">Volver</a></div> }
+else
+{
+<section class="container py-4"><div class="card shadow-sm border-0"><div class="card-body p-4"><h1 class="page-title mb-4">Editar empleado</h1><AlertMessage Message="@Error" Type="danger" OnClosed="() => Error = null" /><EmployeeForm @key="Id" Model="Empleado" Departamentos="Departamentos" Localidades="Localidades" SubmitText="Actualizar" OnSubmit="ActualizarAsync" /></div></div></section>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Empleado? Empleado;
+    private List<Departamento> Departamentos = [];
+    private List<Localidad> Localidades = [];
+    private string? Error;
+    private bool Loading;
+    private bool LoadFailed;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Session.IsAuthenticated) return;
+        await CargarAsync();
+    }
+    private async Task CargarAsync()
+    {
+        Loading = true; LoadFailed = false; Error = null;
+        try
+        {
+            Empleado = await Service.ObtenerPorIdAsync(Id);
+            Departamentos = await Catalogos.ObtenerDepartamentosAsync();
+            Localidades = await Catalogos.ObtenerLocalidadesAsync();
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Error al cargar empleado {Id}", Id); LoadFailed = true; Error = "No se pudo cargar el empleado desde la base de datos."; }
+        finally { Loading = false; }
+    }
+    private async Task ActualizarAsync(Empleado model)
+    {
+        var result = await Service.ActualizarAsync(model);
+        if (result.Ok) Nav.NavigateTo("/empleados");
+        else Error = result.Mensaje;
+    }
+}

@@ -1,0 +1,22 @@
+:root { --wine:#4a0c1b; --wine-dark:#310812; --gold:#b88a44; --page-bg:#f2f2f2; --heading:var(--wine); --auth-bg:rgba(224,224,224,.96); }
+[data-bs-theme="dark"] { --page-bg:#15171b; --heading:#efb9c7; --auth-bg:#25282e; }
+body { margin:0; background:var(--page-bg); color:var(--bs-body-color); font-family:Arial,sans-serif; }
+a { color:var(--heading); }
+.site-footer { margin-top:2rem; }
+.social-links .btn { color:#fff; border-radius:50%; width:40px; height:40px; padding:.55rem; background:var(--wine); }
+.copyright { background:linear-gradient(180deg,var(--wine) 0%,var(--wine-dark) 100%); }
+.auth-page { min-height:calc(100vh - 180px); display:flex; justify-content:center; align-items:center; padding:30px 15px; background:linear-gradient(180deg,var(--wine) 0%,var(--wine-dark) 100%); }
+.auth-card { width:100%; max-width:560px; background:var(--auth-bg); padding:35px 25px; border-radius:14px; box-shadow:0 0 25px rgba(0,0,0,.35); }
+.titulo-login,.page-title { font-family:'Playfair Display SC',serif; color:var(--heading); letter-spacing:1.5px; font-weight:700; }
+.titulo-login { text-align:center; margin-bottom:2rem; }
+.btn-wine { background:linear-gradient(180deg,var(--wine) 0%,var(--wine-dark) 100%); color:#fff; border:0; }
+.btn-wine:hover { color:#fff; filter:brightness(1.12); }
+.form-control:focus,.form-select:focus { border-color:var(--gold); box-shadow:0 0 0 .2rem rgba(184,138,68,.18); }
+.table thead { --bs-table-bg:var(--wine); --bs-table-color:#fff; }
+.validation-message { color:var(--bs-danger-text-emphasis); }
+.page-title { font-size:clamp(1.5rem,4vw,2.25rem); }
+@media(min-width:768px){ .auth-card{padding:55px 60px} }
+
+#blazor-error-ui { background:#fff3cd; bottom:0; box-shadow:0 -1px 4px rgba(0,0,0,.25); display:none; left:0; padding:.75rem 1.25rem; position:fixed; width:100%; z-index:1000; color:#4a0c1b; border-top:3px solid var(--wine); }
+#blazor-error-ui .reload { display:inline-block; margin-left:.75rem; font-weight:700; color:var(--wine); }
+#blazor-error-ui .dismiss { cursor:pointer; position:absolute; right:.75rem; top:.5rem; background:transparent; border:0; color:var(--wine); font-size:1.1rem; line-height:1; }

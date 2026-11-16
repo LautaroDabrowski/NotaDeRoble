@@ -1,0 +1,57 @@
+@page "/registro"
+@layout MainLayout
+@inject UsuarioService Usuarios
+@inject NavigationManager Nav
+@inject ILogger<Register> Logger
+
+<PageTitle>Registro · InstitutoBlazor</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h1 class="titulo-login">Registrarse</h1>
+        <AlertMessage Message="@Message" Type="@MessageType" OnClosed="(() => Message = null)" />
+        <EditForm Model="Model" OnValidSubmit="RegisterAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3"><label for="usuario-registro" class="form-label">Nombre de usuario</label><InputText id="usuario-registro" autocomplete="username" class="form-control" @bind-Value="Model.Nombre" /><ValidationMessage For="() => Model.Nombre" /></div>
+            <div class="mb-3"><label for="email" class="form-label">Correo electrónico</label><InputText id="email" type="email" autocomplete="email" class="form-control" @bind-Value="Model.Email" /><ValidationMessage For="() => Model.Email" /></div>
+            <div class="mb-3"><label for="password-registro" class="form-label">Contraseña</label><InputText id="password-registro" type="password" autocomplete="new-password" class="form-control" @bind-Value="Model.Password" /><small>Entre 8 y 128 caracteres, con una mayúscula y un número.</small><ValidationMessage For="() => Model.Password" /></div>
+            <div class="mb-4"><label for="confirmar-password" class="form-label">Confirmar contraseña</label><InputText id="confirmar-password" type="password" autocomplete="new-password" class="form-control" @bind-Value="Model.ConfirmarPassword" /><ValidationMessage For="() => Model.ConfirmarPassword" /></div>
+            <button class="btn btn-wine w-100" disabled="@Loading">@(Loading ? "Registrando..." : "Registrarse")</button>
+        </EditForm>
+        <div class="text-center mt-4"><a href="/login">Ya tiene usuario? Inicie sesión</a></div>
+    </div>
+</div>
+
+@code {
+    private RegistroUsuario Model { get; set; } = new();
+    private string? Message;
+    private string MessageType = "danger";
+    private bool Loading;
+
+    private async Task RegisterAsync()
+    {
+        if (Loading) return;
+        Loading = true;
+        try
+        {
+            var result = await Usuarios.RegistrarAsync(Model);
+            Message = result.Mensaje;
+            MessageType = result.Ok ? "success" : "danger";
+            if (!result.Ok) return;
+            await Task.Delay(700);
+            Nav.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "No se pudo registrar el usuario");
+            Message = "No se pudo conectar con la base de datos. Verifique que el servidor SQL esté disponible.";
+            MessageType = "danger";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+}

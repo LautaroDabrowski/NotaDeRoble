@@ -1,0 +1,44 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<button type="button" class="btn btn-outline-secondary" disabled="@(Module is null)" @onclick="CopyAsync">Copiar enlace</button>
+<span class="small align-self-center" role="status">@Message</span>
+
+@code {
+    [Parameter, EditorRequired] public string Url { get; set; } = "";
+    private IJSObjectReference? Module;
+    private string? Message;
+    private bool Disposed;
+
+    protected override void OnParametersSet() => Message = null;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/browser.js");
+            if (Disposed) { await module.DisposeAsync(); return; }
+            Module = module;
+            StateHasChanged();
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    private async Task CopyAsync()
+    {
+        if (Module is null) return;
+        try
+        {
+            Message = await Module.InvokeAsync<bool>("copyLink", Url)
+                ? "Enlace copiado." : "Copiá la dirección desde el navegador; el portapapeles requiere HTTPS y permiso.";
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Disposed = true;
+        if (Module is not null)
+            try { await Module.DisposeAsync(); } catch (JSDisconnectedException) { }
+    }
+}

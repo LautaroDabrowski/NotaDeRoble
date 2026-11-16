@@ -1,0 +1,5 @@
+.site-header { background: linear-gradient(180deg, var(--wine), var(--wine-dark)); padding: 1rem 0; }
+.logo-group { display: inline-flex; align-items: center; border-radius: 1rem; }
+.logo-header { height: 65px; max-width: 65vw; object-fit: contain; border-radius: 1rem; }
+.logo-group img:first-child { margin-right: -15px; }
+@media (min-width: 768px) { .logo-header { height: 95px; } }

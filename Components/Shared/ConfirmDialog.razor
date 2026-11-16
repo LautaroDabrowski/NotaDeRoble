@@ -1,0 +1,37 @@
+@if (Visible)
+{
+    <div class="modal-backdrop-custom">
+        <section class="confirm-card shadow-lg" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description" @onkeydown="OnKeyDown">
+            <span tabindex="0" class="visually-hidden" @onfocus="FocusConfirmAsync"></span>
+            <h2 id="confirm-title" class="h5">@Title</h2>
+            <p id="confirm-description">@Message</p>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" disabled="@Busy" @ref="CancelButton" @onclick="Cancel">Cancelar</button>
+                <button type="button" class="btn btn-danger" disabled="@Busy" @ref="ConfirmButton" @onclick="Confirm">@(Busy ? "Eliminando…" : "Eliminar")</button>
+            </div>
+            <span tabindex="0" class="visually-hidden" @onfocus="FocusCancelAsync"></span>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public string Title { get; set; } = "Confirmar acción";
+    [Parameter] public string Message { get; set; } = "¿Desea continuar?";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    private ElementReference CancelButton;
+    private ElementReference ConfirmButton;
+    private bool WasVisible;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Visible && !WasVisible) await CancelButton.FocusAsync();
+        WasVisible = Visible;
+    }
+    private async Task OnKeyDown(KeyboardEventArgs args) { if (args.Key == "Escape" && !Busy) await Cancel(); }
+    private async Task FocusConfirmAsync() { if (!Busy) await ConfirmButton.FocusAsync(); }
+    private async Task FocusCancelAsync() { if (!Busy) await CancelButton.FocusAsync(); }
+    private async Task Confirm() { if (!Busy) await OnConfirm.InvokeAsync(); }
+    private async Task Cancel() { if (!Busy) await OnCancel.InvokeAsync(); }
+}

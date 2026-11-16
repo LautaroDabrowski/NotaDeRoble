@@ -1,0 +1,129 @@
+@page "/empleados"
+@inject SessionService Session
+@inject IEmpleadoService Service
+@inject CatalogoService Catalogos
+@inject EmpleadosState Estado
+@inject ILogger<Empleados> Logger
+
+<PageTitle>Empleados · InstitutoBlazor</PageTitle>
+@if (!Session.IsAuthenticated)
+{
+    <RedirectToLogin />
+}
+else
+{
+    <section class="container py-4" aria-labelledby="titulo-empleados">
+        <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+            <div><h1 id="titulo-empleados" class="page-title">Empleados registrados</h1><p class="text-muted mb-0">Gestión centralizada de empleados.</p></div>
+            <a href="/empleados/nuevo" class="btn btn-wine"><i class="fa-solid fa-plus me-2" aria-hidden="true"></i>Nuevo empleado</a>
+        </header>
+        <form class="card shadow-sm border-0 mb-4" @onsubmit="BuscarAsync" @onsubmit:preventDefault>
+            <fieldset class="card-body" disabled="@Loading">
+                <legend class="visually-hidden">Filtros de empleados</legend>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5"><label for="busqueda" class="form-label">Buscar por DNI, nombre o apellido</label><input id="busqueda" class="form-control" maxlength="100" @bind="Estado.Busqueda" /></div>
+                    <div class="col-md-3"><label for="filtro-departamento" class="form-label">Departamento</label><select id="filtro-departamento" class="form-select" @bind="Estado.Departamento"><option value="0">Todos</option>@foreach (var d in Departamentos) { <option value="@d.IdDepartamento">@d.Nombre</option> }</select></div>
+                    <div class="col-auto"><button type="submit" class="btn btn-wine">Buscar</button></div>
+                    <div class="col-auto"><button type="button" class="btn btn-outline-secondary" @onclick="LimpiarAsync">Limpiar</button></div>
+                </div>
+            </fieldset>
+        </form>
+        <AlertMessage Message="@Message" Type="@MessageType" OnClosed="() => Message = null" />
+        @if (Loading)
+        {
+            <p role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Cargando empleados…</p>
+        }
+        else if (Resultado is not null)
+        {
+            <div class="table-responsive card shadow-sm border-0">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Empleados que coinciden con la búsqueda</caption>
+                    <thead><tr><th scope="col">DNI</th><th scope="col">Nombre</th><th scope="col">Apellido</th><th scope="col">Departamento</th><th scope="col">Localidad</th><th scope="col" class="text-end">Acciones</th></tr></thead>
+                    <tbody>
+                        @if (Resultado.Items.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center py-5 text-muted">No hay empleados para mostrar.</td></tr>
+                        }
+                        @foreach (var e in Resultado.Items)
+                        {
+                            <tr @key="e.Id">
+                                <td>@e.Dni</td><td>@e.Nombre</td><td>@e.Apellido</td><td>@e.Departamento?.Nombre</td><td>@e.Localidad?.Nombre</td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-success me-1" href="/empleados/ver/@e.Id" aria-label="Ver a @e.NombreCompleto"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="visually-hidden">Ver</span></a>
+                                    <a class="btn btn-sm btn-secondary me-1" href="/empleados/editar/@e.Id" aria-label="Editar a @e.NombreCompleto"><i class="fa-solid fa-pen" aria-hidden="true"></i><span class="visually-hidden">Editar</span></a>
+                                    <button type="button" class="btn btn-sm btn-danger" aria-label="Eliminar a @e.NombreCompleto" @onclick="() => Seleccionado = e"><i class="fa-solid fa-trash" aria-hidden="true"></i><span class="visually-hidden">Eliminar</span></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <Paginacion PaginaActual="Resultado.Pagina" TotalPaginas="Resultado.TotalPaginas" Total="Resultado.Total" Disabled="Loading" OnCambio="CambiarPaginaAsync" />
+        }
+    </section>
+    <ConfirmDialog Visible="@(Seleccionado is not null)" Busy="Deleting" Title="Eliminar empleado"
+                   Message="@($"¿Eliminar a {Seleccionado?.NombreCompleto}? Esta acción no se puede deshacer.")"
+                   OnConfirm="EliminarAsync" OnCancel="() => Seleccionado = null" />
+}
+
+@code {
+    private PagedResult<Empleado>? Resultado;
+    private List<Departamento> Departamentos = [];
+    private string? Message;
+    private string MessageType = "danger";
+    private bool Loading;
+    private bool Deleting;
+    private Empleado? Seleccionado;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Session.IsAuthenticated) await CargarAsync();
+    }
+
+    private async Task CargarAsync()
+    {
+        Loading = true;
+        try
+        {
+            Departamentos = await Catalogos.ObtenerDepartamentosAsync();
+            Resultado = await Service.ObtenerPaginadoAsync(Estado.Busqueda, Estado.Departamento, Estado.Pagina);
+            Estado.Pagina = Resultado.Pagina;
+            var resumen = await Service.ObtenerEstadisticasAsync();
+            Estado.ActualizarResumen(resumen.Empleados, resumen.Departamentos);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al cargar empleados");
+            Resultado = null;
+            Message = "No se pudo cargar la lista. Comprobá la conexión a SQL Server y presioná Buscar para reintentar.";
+            MessageType = "danger";
+        }
+        finally { Loading = false; }
+    }
+
+    private async Task BuscarAsync() { if (Loading) return; Message = null; Estado.Pagina = 1; await CargarAsync(); }
+    private async Task LimpiarAsync() { Estado.Limpiar(); await BuscarAsync(); }
+    private async Task CambiarPaginaAsync(int pagina) { if (Loading) return; Message = null; Estado.Pagina = pagina; await CargarAsync(); }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionado is null || Deleting) return;
+        Deleting = true;
+        try
+        {
+            var result = await Service.EliminarAsync(Seleccionado.Id);
+            Message = result.Mensaje;
+            MessageType = result.Ok ? "success" : "danger";
+            Seleccionado = null;
+            await CargarAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al eliminar empleado");
+            Message = "No se pudo eliminar. Reintentá cuando la base de datos esté disponible.";
+            MessageType = "danger";
+            Seleccionado = null;
+        }
+        finally { Deleting = false; }
+    }
+}

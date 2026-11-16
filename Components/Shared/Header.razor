@@ -1,0 +1,55 @@
+@inject SessionService Session
+@inject EmpleadosState Estado
+@inject NavigationManager Nav
+@implements IDisposable
+
+<header class="site-header shadow-sm">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <a href="/" class="logo-group" aria-label="InstitutoBlazor · Inicio">
+            <img src="images/Logo6.png" class="logo-header" alt="" />
+            <img src="images/Logo5.png" class="logo-header" alt="Nota de Roble" />
+        </a>
+        <nav class="d-flex flex-wrap align-items-center gap-2" aria-label="Navegación principal">
+            <ThemeToggle />
+            @if (Session.IsAuthenticated)
+            {
+                <NavLink class="btn btn-outline-light" href="/empleados" Match="NavLinkMatch.All">Empleados</NavLink>
+                <button class="btn btn-outline-light" @onclick="Logout">Cerrar sesión</button>
+            }
+            else
+            {
+                <NavLink class="btn btn-outline-light" href="/login">Ingresar</NavLink>
+                <NavLink class="btn btn-outline-light" href="/registro">Registrarse</NavLink>
+            }
+        </nav>
+    </div>
+    @if (Session.IsAuthenticated)
+    {
+        <aside class="container mt-2 small text-white" aria-label="Resumen de empleados" aria-live="polite">
+            @Session.UserName
+            @if (Estado.Total is not null) { <span> · @Estado.Total empleados · @Estado.Departamentos departamentos con empleados</span> }
+        </aside>
+    }
+</header>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Session.OnChange += OnChanged;
+        Estado.OnChange += OnChanged;
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose()
+    {
+        Session.OnChange -= OnChanged;
+        Estado.OnChange -= OnChanged;
+    }
+
+    private async Task Logout()
+    {
+        await Session.LogoutAsync();
+        Estado.Limpiar();
+        Nav.NavigateTo("/login");
+    }
+}

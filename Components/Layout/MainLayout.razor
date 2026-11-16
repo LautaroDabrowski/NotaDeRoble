@@ -1,0 +1,32 @@
+@inherits LayoutComponentBase
+@inject SessionService Session
+@implements IDisposable
+
+@if (!Session.IsReady)
+{
+    <main class="d-flex justify-content-center align-items-center text-muted" style="min-height:100vh" role="status">Cargando…</main>
+}
+else
+{
+    <div class="app-shell">
+        <a class="visually-hidden-focusable" href="#contenido">Saltar al contenido</a>
+        <Header />
+        <main id="contenido" class="main-content" tabindex="-1">
+            <article>@Body</article>
+        </main>
+        <Footer />
+    </div>
+}
+
+@code {
+    protected override void OnInitialized() => Session.OnChange += OnSessionChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // El almacenamiento requiere JS: debe inicializarse después del primer render interactivo.
+        if (firstRender) await Session.InitializeAsync();
+    }
+
+    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Session.OnChange -= OnSessionChanged;
+}

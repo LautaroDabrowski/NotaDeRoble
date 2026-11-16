@@ -1,0 +1,58 @@
+@page "/login"
+@layout MainLayout
+@inject UsuarioService Usuarios
+@inject SessionService Session
+@inject NavigationManager Nav
+@inject ILogger<Login> Logger
+
+<PageTitle>Iniciar sesión · InstitutoBlazor</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h1 class="titulo-login">Iniciar Sesión</h1>
+        <AlertMessage Message="@Message" Type="@MessageType" OnClosed="(() => Message = null)" />
+        <EditForm Model="Model" OnValidSubmit="LoginAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3"><label for="login" class="form-label">Usuario o correo electrónico</label><InputText id="login" autocomplete="username" class="form-control" @bind-Value="Model.Login" /></div>
+            <div class="mb-4"><label for="password" class="form-label">Contraseña</label><InputText id="password" type="password" autocomplete="current-password" class="form-control" @bind-Value="Model.Password" /></div>
+            <button class="btn btn-wine w-100" disabled="@Loading">@(Loading ? "Ingresando..." : "Ingresar")</button>
+        </EditForm>
+        <div class="text-center mt-4"><a href="/registro">Registrarse</a></div>
+    </div>
+</div>
+
+@code {
+    private LoginModel Model { get; set; } = new();
+    private string? Message;
+    private string MessageType = "danger";
+    private bool Loading;
+
+    private async Task LoginAsync()
+    {
+        if (Loading) return;
+        Loading = true;
+        try
+        {
+            var result = await Usuarios.ValidarAsync(Model.Login, Model.Password);
+            if (!result.Ok) { Message = result.Mensaje; return; }
+            await Session.LoginAsync(result.Usuario!.Nombre);
+            Nav.NavigateTo("/empleados");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "No se pudo iniciar sesión");
+            Message = "No se pudo conectar con la base de datos. Verifique que el servidor SQL esté disponible.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Ingrese usuario o correo.")] public string Login { get; set; } = "";
+        [Required(ErrorMessage = "Ingrese la contraseña.")] public string Password { get; set; } = "";
+    }
+}
