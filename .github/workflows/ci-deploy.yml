@@ -1,0 +1,90 @@
+name: CI y despliegue Ubuntu
+
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'release/**', 'hotfix/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restaurar herramientas y dependencias
+        run: |
+          dotnet tool restore
+          dotnet restore InstitutoBlazor.sln
+      - name: Compilar
+        run: dotnet build InstitutoBlazor.sln --no-restore -c Release --warnaserror
+      - name: Pruebas relacionales rápidas
+        run: dotnet test InstitutoBlazor.sln --no-build -c Release
+      - name: Iniciar SQL Server temporal
+        shell: bash
+        run: |
+          password="$(openssl rand -hex 24)Aa1!"
+          echo "::add-mask::$password"
+          export MSSQL_SA_PASSWORD="$password"
+          docker run -d --name instituto-test -e ACCEPT_EULA=Y -e MSSQL_PID=Express -e MSSQL_SA_PASSWORD -p 127.0.0.1:14339:1433 mcr.microsoft.com/mssql/server:2022-latest
+          connection="Server=127.0.0.1,14339;Database=master;User Id=sa;Password=$password;TrustServerCertificate=True;Connect Timeout=5"
+          echo "::add-mask::$connection"
+          echo "INSTITUTO_TEST_SQLSERVER=$connection" >> "$GITHUB_ENV"
+          export SQLCMDPASSWORD="$password"
+          for attempt in {1..90}; do
+            if docker exec -e SQLCMDPASSWORD instituto-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q 'SELECT 1' -b -o /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Pruebas y migraciones en SQL Server
+        run: dotnet test InstitutoBlazor.sln --no-build -c Release
+      - name: Verificar modelo y publicar artefacto
+        run: |
+          dotnet ef migrations has-pending-model-changes --configuration Release --no-build
+          dotnet publish InstitutoBlazor.csproj --no-restore -c Release -o artifacts/app
+          dotnet ef migrations script --idempotent --configuration Release --no-build --output artifacts/migraciones.sql
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instituto-app
+          path: artifacts/app/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migraciones-sql
+          path: artifacts/migraciones.sql
+          retention-days: 7
+      - name: Detener SQL Server temporal
+        if: always()
+        run: docker rm -f instituto-test || true
+
+  deploy:
+    needs: build
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      vars.DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, linux, x64, instituto-production]
+    timeout-minutes: 10
+    concurrency:
+      group: instituto-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: instituto-app
+          path: ${{ runner.temp }}/instituto-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Activar versión y comprobar base de datos
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/instituto-${{ github.run_id }}-${{ github.run_attempt }}
+        run: /usr/local/bin/deploy-institutoblazor "$ARTIFACT_DIR"
