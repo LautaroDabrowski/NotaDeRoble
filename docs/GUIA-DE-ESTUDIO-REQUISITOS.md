@@ -13,11 +13,11 @@ Esta guía responde una sola pregunta: **para cada requisito, dónde está en el
 | Interfaz visual: HTML5, CSS, Bootstrap responsive | 15 | Hecho | `MainLayout.razor`, `Header/Footer`, `app.css`, capturas |
 | JS Interop implementado correctamente | 10 | Hecho | `ThemeToggle.razor`, `CopyLink.razor`, `wwwroot/js/browser.js` |
 | Persistencia EF Core: CRUD, paginación, búsqueda | 20 | Hecho | `AppDbContext`, `EmpleadoService`, migraciones, pruebas |
-| Git: historial limpio, ramas, CI/CD | 10 | **Pendiente** | `.github/workflows/ci-deploy.yml` listo; falta repo y ejecución |
+| Git: historial limpio, ramas, CI/CD | 10 | **Parcial** | Repo público y build verde; faltan ramas/PR/issues y runner |
 | Aplicación desplegada y accesible | 5 | Hecho (URL temporal) | VM QEMU + Nginx + Cloudflare Tunnel |
 | README y documentación | 5 | Hecho | `README.md`, `CHANGELOG.md`, `docs/` |
 
-**Total: 100 puntos.** La prioridad antes de exponer es cerrar el repositorio GitHub y ver el workflow en verde: es lo único que hoy no está demostrado.
+**Total: 100 puntos.** El repo y el build ya están. La prioridad antes de exponer es crear los 5 issues, el tablero, un PR de ejemplo y registrar el runner para que el deploy se ejecute.
 
 ## 2. Mapa rápido: requisito → archivo → qué mostrar
 
@@ -37,8 +37,8 @@ Esta guía responde una sola pregunta: **para cada requisito, dónde está en el
 | Migraciones versionadas y seed | `Data/Migrations/`, `DemoData.cs` | 2 migraciones; 5 departamentos, 5 localidades, 12 empleados |
 | CRUD completo | `EmpleadoService.cs`, páginas de empleados | Crear, listar, ver, editar, eliminar |
 | Paginación y búsqueda | `EmpleadoService.ObtenerPaginadoAsync` | `Where`, `CountAsync`, `Skip/Take` en SQL Server |
-| Repositorio GitHub limpio | — | **Pendiente**: crear repo, commits convencionales, ramas y PR |
-| CI/CD con GitHub Actions | `.github/workflows/ci-deploy.yml` | Build, tests SQLite/SQL Server, artefactos y deploy self-hosted |
+| Repositorio GitHub limpio | https://github.com/LautaroDabrowski/NotaDeRoble | **Hecho parcial**: repo público y 6 commits; faltan ramas/PR/issues |
+| CI/CD con GitHub Actions | `.github/workflows/ci-deploy.yml` | Build verde (run 43978670037); deploy skipped hasta runner |
 | README profesional | `README.md` | Descripción, stack, arquitectura Mermaid, instalación, pruebas, despliegue |
 | Aplicación en URL pública | Cloudflare Tunnel | `https://plugins-necessary-forms-tba.trycloudflare.com` (temporal) |
 | CHANGELOG con 3 versiones | `CHANGELOG.md` | `0.3.0`, `0.2.0`, `0.1.0` |
@@ -224,40 +224,39 @@ Hay **6** archivos:
 
 ## 6. Unidad 4 — Prácticas profesionales (20 puntos)
 
-### 6.1 Repositorio GitHub con historial limpio — PENDIENTE
+### 6.1 Repositorio GitHub con historial limpio — HECHO PARCIAL
 
 Lo que ya existe:
 
+- Repo público: https://github.com/LautaroDabrowski/NotaDeRoble
+- Rama `main` con 6 commits convencionales y sin secretos.
 - `.github/workflows/ci-deploy.yml` (CI/CD).
 - `.github/pull_request_template.md`.
 - `.github/ISSUE_TEMPLATE/historia.md`, `bug.md`, `documentacion.md`.
 - `docs/GIT-Y-GITHUB.md` con el flujo de ramas, issues, tablero y PRs.
 - `.gitignore` de .NET (líneas 1-23), que excluye `bin/`, `obj/`, `.env`, `*.env`, `secrets.json`, `appsettings.*.local.json`, `publish/`, `node_modules/`, etc.
+- Workflow ejecutado: build **verde** en el run `43978670037`; el job `deploy` quedó `skipped` porque falta el runner y `DEPLOY_ENABLED=true`.
 
 Lo que falta para la nota:
 
-1. Crear el repositorio **público** en GitHub.
-2. Inicializar Git y hacer commits con **Conventional Commits**.
-3. Crear las ramas `main` y `develop`; trabajar una mejora en `feature/...`.
-4. Abrir un PR, comentar una línea y hacer merge.
-5. Crear **5 issues** con etiquetas `bug`, `enhancement`, `documentation`.
-6. Crear el tablero Kanban: `Backlog`, `In Progress`, `Done`.
-7. Ver el workflow de Actions en verde.
+1. Crear la rama `develop` y una rama `feature/...` o `docs/...` para una mejora.
+2. Abrir un PR, comentar una línea y hacer merge.
+3. Crear **5 issues** con etiquetas `bug`, `enhancement`, `documentation`.
+4. Crear el tablero Kanban: `Backlog`, `In Progress`, `Done`.
+5. Registrar el runner self-hosted en la VM y activar `DEPLOY_ENABLED=true` para que el deploy deje de estar omitido.
 
-**Commits sugeridos** (no hacer un único commit gigante):
+**Commits ya realizados:**
 
 ```text
-chore: inicializar solución Blazor y configuración
-feat: agregar CRUD de empleados con EF Core
-feat: incorporar autenticación y sesión persistente
-feat: agregar validaciones con FluentValidation
-feat: implementar interfaz responsive y modo oscuro
-test: cubrir persistencia y flujo E2E
-ci: agregar workflow de build y despliegue
-docs: documentar arquitectura, despliegue y uso
+96ce8d0 feat: implementar aplicación Blazor con CRUD, autenticación y persistencia
+099f1d2 chore: configurar SDK, herramientas y perfiles de ejecución
+052e696 ci: agregar workflow de build y despliegue con GitHub Actions
+537cc50 chore: agregar scripts de despliegue para Ubuntu y QEMU
+c2e5ffd docs: documentar arquitectura, despliegue y guía de presentación
+f428244 docs: agregar guía de estudio en PDF
 ```
 
-**Orden de prioridad:** repo + push + Actions verde (10 puntos y checklist) → 5 issues + tablero → PR de ejemplo. Si el tiempo aprieta, el PR puede ser un cambio pequeño de documentación.
+**Orden de prioridad:** 5 issues + tablero + PR de ejemplo (10 puntos y checklist) → runner + deploy → ensayo. Si el tiempo aprieta, el PR puede ser un cambio pequeño de documentación, como el de esta guía.
 
 ### 6.2 CI/CD con GitHub Actions
 
@@ -271,6 +270,8 @@ docs: documentar arquitectura, despliegue y uso
 - Líneas 52-56 → `has-pending-model-changes`, publicación y script SQL idempotente.
 - Líneas 57-66 → artefactos `instituto-app` y `migraciones-sql`.
 - Líneas 71-90 → job `deploy`: solo en `main`, con `vars.DEPLOY_ENABLED == 'true'`, en un runner **self-hosted** con etiquetas `[self-hosted, linux, x64, instituto-production]`; descarga el artefacto y ejecuta `/usr/local/bin/deploy-institutoblazor`.
+
+**Estado:** build verde en el run `43978670037`; el job `deploy` quedó `skipped` porque `vars.DEPLOY_ENABLED` no está definido y el runner todavía no está registrado.
 
 **Qué decir:** “El CI no solo compila: prueba con SQLite y con SQL Server real, verifica que no falte ninguna migración, publica la app y el script SQL, y solo despliega en `main` si la variable `DEPLOY_ENABLED` está en true.”
 
@@ -314,10 +315,10 @@ docs: documentar arquitectura, despliegue y uso
 | Checklist de la consigna | Estado | Evidencia / acción |
 |---|---|---|
 | Aplicación desplegada con URL funcionando | Hecho (temporal) | URL de Cloudflare + `/health` |
-| Repositorio GitHub público con historial limpio | **Pendiente** | Crear repo, commits convencionales, ramas |
+| Repositorio GitHub público con historial limpio | **Hecho parcial** | Repo público y 6 commits; faltan issues/tablero/PR |
 | README completo: descripción, stack, instalación, capturas | Hecho | `README.md` |
 | CHANGELOG con al menos 3 versiones | Hecho | `0.3.0`, `0.2.0`, `0.1.0` |
-| GitHub Actions: workflow CI/CD verde | **Pendiente** | Falta primer push y ejecución |
+| GitHub Actions: workflow CI/CD verde | **Build verde; deploy pendiente** | Run `43978670037`; deploy skipped hasta runner |
 | Base de datos con datos de seed | Hecho | 12 empleados, 5 departamentos, 5 localidades |
 | Sin credenciales ni secrets en el código | Hecho | `appsettings.json` vacío, `.gitignore`, variables de entorno |
 
@@ -411,7 +412,7 @@ Playwright cambia el viewport a 375×812 y verifica que `scrollWidth <= innerWid
 El router de la red no permitía administración ni redirección de puertos; Cloudflare Tunnel da una URL HTTPS sin tocar el router. Es temporal; para una URL fija usaría un túnel nombrado con dominio.
 
 **¿Qué falta?**
-El repositorio GitHub con los commits, las ramas, los issues y la primera ejecución verde de Actions. El código y el despliegue están terminados.
+El repo ya está público y el build de Actions está verde. Faltan los 5 issues, el tablero, un PR de ejemplo y el runner self-hosted para que el deploy se ejecute; el código y el despliegue manual están terminados.
 
 ## 10. Cinco historias de usuario para los issues
 
@@ -429,8 +430,8 @@ Tablero Kanban: **Backlog → In Progress → Done**. Etiquetas: `enhancement` p
 
 ## 11. Riesgos antes de exponer
 
-1. **GitHub pendiente (lo más grave):** sin repo no se pueden mostrar commits, ramas, PRs, issues ni Actions. Hacerlo antes que cualquier otra cosa.
-2. **Workflow sin ejecutar:** el CI está escrito pero no probado en GitHub. El primer push debe quedar verde; si el deploy falla por el runner, dejar `DEPLOY_ENABLED` en `false` para que el build quede verde y mostrar el despliegue manual.
+1. **GitHub parcial:** el repo público y el build ya están; faltan los 5 issues, el tablero y un PR. Crearlos antes de la demo.
+2. **Deploy omitido:** el build está verde, pero el job `deploy` queda `skipped` hasta registrar el runner y definir `DEPLOY_ENABLED=true`. Para la demo alcanza con mostrar el build verde y el despliegue manual; si se configura el runner, mejor.
 3. **URL temporal:** si se reinicia el túnel, cambia la URL. No cerrar QEMU ni el túnel; probar la URL 30 minutos antes y tener a mano el comando para obtener la nueva.
 4. **PC suspendida:** configurar energía en “nunca suspender” durante la demo.
 5. **No mostrar secretos:** no abrir `/etc/institutoblazor/*.env`, ni la consola con la cadena de conexión, ni logs con contraseñas.
@@ -444,4 +445,4 @@ Tablero Kanban: **Backlog → In Progress → Done**. Etiquetas: `enhancement` p
 - [ ] VS Code con `EmployeeForm.razor`, `EmpleadoService.cs`, `AppDbContext.cs` y una migración.
 - [ ] `docs/capturas/empleados-claro.png` y `empleados-oscuro-movil.png`.
 - [ ] `README.md` y `CHANGELOG.md`.
-- [ ] Terminal con `git log --oneline --graph` (después de crear el repo).
+- [ ] Terminal con `git log --oneline --graph` (el repo ya está creado).

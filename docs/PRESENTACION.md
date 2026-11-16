@@ -13,9 +13,9 @@
 | Búsqueda, filtro y paginación en servidor | Hecho | `EmpleadoService.ObtenerPaginadoAsync` |
 | Diseño responsive y modo oscuro | Hecho | capturas claro/oscuro 375 px |
 | Pruebas automatizadas | Hecho | 7 pruebas SQLite + SQL Server, Playwright |
-| CI/CD con GitHub Actions | Configurado | `.github/workflows/ci-deploy.yml` |
+| CI/CD con GitHub Actions | Build verde; deploy pendiente de runner | [run 43978670037](https://github.com/LautaroDabrowski/NotaDeRoble/actions/runs/43978670037) |
 | Documentación de despliegue | Hecho | `docs/DESPLIEGUE.md`, `docs/BASE-DE-DATOS.md` |
-| Repositorio GitHub, issues, tablero y PRs | **Pendiente externo** | requiere crear el repo y subir el código |
+| Repositorio GitHub, issues, tablero y PRs | Repo público y 6 commits; faltan issues/tablero/PR | https://github.com/LautaroDabrowski/NotaDeRoble |
 | VM Ubuntu y URL pública | Hecho | QEMU/KVM + Cloudflare Tunnel |
 | Prueba E2E contra la URL pública | Hecho | Playwright sobre la URL de Cloudflare |
 
@@ -26,6 +26,10 @@ https://plugins-necessary-forms-tba.trycloudflare.com
 ```
 
 Es un **Cloudflare Quick Tunnel** temporal: no requiere router ni IP pública, pero la URL cambia si se reinicia el túnel. Ver [`docs/VM-LOCAL.md`](VM-LOCAL.md) para obtener la URL actual o recrearlo.
+
+Repositorio: https://github.com/LautaroDabrowski/NotaDeRoble
+
+> Estado actual: repo público con 6 commits y build verde. Faltan los 5 issues, el tablero, un PR de ejemplo y el runner self-hosted para que el job de deploy se ejecute.
 
 ## 2. Antes de presentar
 
@@ -46,10 +50,10 @@ journalctl --user -u instituto-tunnel -n 60 --no-pager | grep trycloudflare
 
 La ventana de QEMU debe seguir abierta y el host no debe suspenderse.
 
-2. Verificar que el workflow de `main` está verde.
+2. Verificar que el workflow de `main` está verde (el build ya está verificado; el deploy se activa al configurar el runner).
 3. Tener abiertas estas pestañas:
    - Aplicación desplegada (`/login`).
-   - Repositorio: tablero, issues y Pull Requests.
+   - Repositorio: commits, issues, tablero y Pull Requests (crear los issues/tablero/PR antes de la demo).
    - Actions: última ejecución de CI/CD.
    - `docs/capturas/empleados-claro.png` y `empleados-oscuro-movil.png`.
 4. Reiniciar la base solo si hace falta una demo desde cero (perder usuarios y empleados creados).
