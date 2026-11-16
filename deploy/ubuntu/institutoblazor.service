@@ -1,0 +1,25 @@
+[Unit]
+Description=InstitutoBlazor - Blazor Interactive Server
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/opt/institutoblazor/current
+ExecStart=/usr/bin/dotnet /opt/institutoblazor/current/InstitutoBlazor.dll
+User=institutoblazor
+Group=institutoblazor
+EnvironmentFile=/etc/institutoblazor/institutoblazor.env
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+SyslogIdentifier=institutoblazor
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+StateDirectory=institutoblazor
+ReadWritePaths=/var/lib/institutoblazor
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

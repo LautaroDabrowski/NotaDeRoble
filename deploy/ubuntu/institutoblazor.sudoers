@@ -1,0 +1,2 @@
+# Instalar mediante visudo -f /etc/sudoers.d/institutoblazor-deploy (modo 0440).
+instituto-deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart institutoblazor.service
