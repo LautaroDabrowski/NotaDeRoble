@@ -136,13 +136,15 @@ systemctl --user stop instituto-tunnel
 
 ### Opción B: redirección en el router
 
+El dominio libvirt publica los puertos solo en `127.0.0.1` por seguridad. Para acceder desde la LAN hay que cambiar el `address` de los `portForward` en `deploy/qemu/InstitutoBlazor.xml` por la IP del host Fedora (o `0.0.0.0`), redefinir el dominio y reiniciar la VM. También hay que abrir el puerto en `firewalld`.
+
 Si el router permite administración y redirección de puertos:
 
 - Puerto externo **80** → `192.168.1.41:8080` (IP del host Fedora), TCP.
 - Si el ISP bloquea el 80: externo **8080** → `192.168.1.41:8080` y URL con `:8080`.
 - Verificar que la IP WAN no sea CGNAT (`100.64.0.0/10`).
 
-En esta instalación el router no respondió en `192.168.1.1` (HTTP/HTTPS) y UPnP estaba deshabilitado, por eso se usó el túnel.
+En esta instalación el router no respondió en `192.168.1.1` (HTTP/HTTPS) y UPnP estaba deshabilitado, por eso se usó el túnel. Para la demo alcanza con la Opción A.
 
 ## 6. Durante la presentación
 
