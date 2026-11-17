@@ -4,7 +4,7 @@
 
 Migración del CRUD original en **PHP/MySQL** a una aplicación **C# + Blazor Web App + Entity Framework Core + SQL Server**, preparada para ejecutarse y desplegarse en **Ubuntu Server**. Proyecto integrador de **EDIWEB**.
 
-**Demo:** [plugins-necessary-forms-tba.trycloudflare.com](https://plugins-necessary-forms-tba.trycloudflare.com)  
+**Demo:** [chances-mtv-labour-depends.trycloudflare.com](https://chances-mtv-labour-depends.trycloudflare.com)  
 **Repositorio:** [LautaroDabrowski/NotaDeRoble](https://github.com/LautaroDabrowski/NotaDeRoble)  
 **Documentación:** [docs/](docs/) · **Guía de estudio:** [Markdown](docs/GUIA-DE-ESTUDIO-REQUISITOS.md) · [PDF](docs/GUIA-DE-ESTUDIO-REQUISITOS.pdf)
 
@@ -222,8 +222,8 @@ La guía completa está en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md):
 Scripts del repositorio:
 
 - [`deploy/ubuntu/`](deploy/ubuntu/): instalación idempotente, servicio systemd, Nginx, Docker y [`deploy-institutoblazor`](deploy/ubuntu/deploy.sh).
-- [`deploy/qemu/`](deploy/qemu/): creación e inicio de la VM Ubuntu con QEMU/KVM.
-- [`docs/VM-LOCAL.md`](docs/VM-LOCAL.md): VM, red NAT, SSH y Cloudflare Tunnel.
+- [`deploy/qemu/`](deploy/qemu/): creación de la VM, dominio libvirt y arranque desde virt-manager.
+- [`docs/VM-LOCAL.md`](docs/VM-LOCAL.md): VM, libvirt/virt-manager, red NAT, SSH y Cloudflare Tunnel.
 - [`docs/BASE-DE-DATOS.md`](docs/BASE-DE-DATOS.md): modelo, migraciones, usuarios, backups y restauración.
 - [`docs/GIT-Y-GITHUB.md`](docs/GIT-Y-GITHUB.md): ramas, issues, tablero, PRs y evidencias.
 - [`docs/PRESENTACION.md`](docs/PRESENTACION.md): guion de demo, estado de entrega y preguntas frecuentes.

@@ -40,7 +40,7 @@ Esta guía responde una sola pregunta: **para cada requisito, dónde está en el
 | Repositorio GitHub limpio | https://github.com/LautaroDabrowski/NotaDeRoble | **Hecho parcial**: repo público y 6 commits; faltan ramas/PR/issues |
 | CI/CD con GitHub Actions | `.github/workflows/ci-deploy.yml` | Build verde (run 43978670037); deploy skipped hasta runner |
 | README profesional | `README.md` | Descripción, stack, arquitectura Mermaid, instalación, pruebas, despliegue |
-| Aplicación en URL pública | Cloudflare Tunnel | `https://plugins-necessary-forms-tba.trycloudflare.com` (temporal) |
+| Aplicación en URL pública | Cloudflare Tunnel | `https://chances-mtv-labour-depends.trycloudflare.com` (temporal) |
 | CHANGELOG con 3 versiones | `CHANGELOG.md` | `0.3.0`, `0.2.0`, `0.1.0` |
 | Sin credenciales en el código | `appsettings.json`, `.gitignore` | Cadena vacía, user secrets y variables de entorno |
 | Datos de seed para la demo | `Data/DemoData.cs` | 12 empleados y catálogos |
@@ -304,7 +304,7 @@ f428244 docs: agregar guía de estudio en PDF
 - SQL Server 2022 en Docker, solo loopback.
 - Servicio `institutoblazor.service` con `Restart=on-failure`.
 - Túnel Cloudflare desde el host: `http://127.0.0.1:8080` → URL HTTPS pública.
-- URL actual: **https://plugins-necessary-forms-tba.trycloudflare.com**
+- URL actual: **https://chances-mtv-labour-depends.trycloudflare.com**
 - Verificación: `/health` devuelve `Healthy`; home y `/registro` devuelven 200.
 - La prueba E2E completa pasó contra la URL pública (registro, F5, validaciones, CRUD, búsqueda, paginación, modo oscuro y 375 px).
 
@@ -432,7 +432,7 @@ Tablero Kanban: **Backlog → In Progress → Done**. Etiquetas: `enhancement` p
 
 1. **GitHub parcial:** el repo público y el build ya están; faltan los 5 issues, el tablero y un PR. Crearlos antes de la demo.
 2. **Deploy omitido:** el build está verde, pero el job `deploy` queda `skipped` hasta registrar el runner y definir `DEPLOY_ENABLED=true`. Para la demo alcanza con mostrar el build verde y el despliegue manual; si se configura el runner, mejor.
-3. **URL temporal:** si se reinicia el túnel, cambia la URL. No cerrar QEMU ni el túnel; probar la URL 30 minutos antes y tener a mano el comando para obtener la nueva.
+3. **URL temporal:** si se reinicia el túnel, cambia la URL. No apagar la VM ni el túnel; probar la URL 30 minutos antes y tener a mano el comando para obtener la nueva.
 4. **PC suspendida:** configurar energía en “nunca suspender” durante la demo.
 5. **No mostrar secretos:** no abrir `/etc/institutoblazor/*.env`, ni la consola con la cadena de conexión, ni logs con contraseñas.
 

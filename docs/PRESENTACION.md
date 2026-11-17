@@ -22,7 +22,7 @@
 ### URL pública de la demo
 
 ```text
-https://plugins-necessary-forms-tba.trycloudflare.com
+https://chances-mtv-labour-depends.trycloudflare.com
 ```
 
 Es un **Cloudflare Quick Tunnel** temporal: no requiere router ni IP pública, pero la URL cambia si se reinicia el túnel. Ver [`docs/VM-LOCAL.md`](VM-LOCAL.md) para obtener la URL actual o recrearlo.
@@ -38,7 +38,7 @@ Repositorio: https://github.com/LautaroDabrowski/NotaDeRoble
 1. Confirmar que la URL pública responde:
 
 ```bash
-curl -fsS https://plugins-necessary-forms-tba.trycloudflare.com/health
+curl -fsS https://chances-mtv-labour-depends.trycloudflare.com/health
 ```
 
 Si no responde, comprobar que QEMU y el túnel estén activos:
@@ -48,7 +48,7 @@ systemctl --user status instituto-tunnel
 journalctl --user -u instituto-tunnel -n 60 --no-pager | grep trycloudflare
 ```
 
-La ventana de QEMU debe seguir abierta y el host no debe suspenderse.
+La VM debe seguir encendida (virt-manager o `virsh`) y el host no debe suspenderse.
 
 2. Verificar que el workflow de `main` está verde (el build ya está verificado; el deploy se activa al configurar el runner).
 3. Tener abiertas estas pestañas:
@@ -123,7 +123,7 @@ Mostrar `README.md` y explicar:
 - Captura del workflow verde.
 - Captura de `/health` con `Healthy`.
 - Captura de SQL Server con las tablas y los 12 registros de demostración.
-- Enlace público de la aplicación: `https://plugins-necessary-forms-tba.trycloudflare.com` (temporal).
+- Enlace público de la aplicación: `https://chances-mtv-labour-depends.trycloudflare.com` (temporal).
 
 ## 5. Preguntas frecuentes
 
