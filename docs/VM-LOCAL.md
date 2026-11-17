@@ -10,7 +10,7 @@ Guía de la VM usada para la demo: Ubuntu Server 26.04 LTS sobre QEMU/KVM en Fed
 | vCPU | 4 |
 | Disco | 25 GB dinámicos (`raw` disperso) |
 | Aceleración | KVM (`/dev/kvm`) |
-| Red | NAT de QEMU + reenvío de puertos |
+| Red | NAT de usuario (passt) + reenvío de puertos |
 
 Comprobar KVM:
 
@@ -51,21 +51,37 @@ ISO=/ruta/ubuntu.iso DISK=/ruta/instituto.raw ./deploy/qemu/instalar.sh
 
 ## 3. Arrancar la VM ya instalada
 
+La VM quedó registrada en **libvirt** como dominio `InstitutoBlazor`, en la conexión de usuario `qemu:///session`. Para iniciarla y abrir la consola en virt-manager:
+
 ```bash
 ./deploy/qemu/iniciar.sh
 ```
 
-La VM sigue usando NAT de QEMU. El host reenvía:
+El script define el dominio si no existe, lo inicia y abre `virt-manager`. También podés abrirlo a mano:
+
+```bash
+virt-manager -c qemu:///session
+```
+
+Si virt-manager ya está abierto en la conexión del sistema (`QEMU/KVM`), agregá la conexión de usuario desde **Archivo → Agregar conexión → QEMU/KVM user session**. El dominio aparece en esa conexión, no en la del sistema, porque el disco está en tu home y se ejecuta sin permisos de root.
+
+La VM usa NAT de usuario con **passt**. El host reenvía:
 
 | Host | VM | Uso |
 |---|---|---|
 | `127.0.0.1:2222` | `22` | SSH |
-| `0.0.0.0:8080` | `80` | HTTP público local |
+| `127.0.0.1:8080` | `80` | HTTP local y Cloudflare Tunnel |
 
 Acceso:
 
 ```bash
 ssh -p 2222 lauty@127.0.0.1
+```
+
+Requisitos del host: `libvirt`, `virt-manager` y `passt`. En Fedora:
+
+```bash
+sudo dnf install libvirt virt-manager passt
 ```
 
 ## 4. Instalación automática del stack
@@ -130,20 +146,42 @@ En esta instalación el router no respondió en `192.168.1.1` (HTTP/HTTPS) y UPn
 
 ## 6. Durante la presentación
 
-- Mantener abierta la ventana de QEMU o el proceso `iniciar.sh`.
+- Mantener la VM encendida en virt-manager. Cerrar la ventana de virt-manager **no apaga** la VM.
 - Mantener el host Fedora despierto (Configuración de energía → nunca suspender).
 - No detener `instituto-tunnel.service`; si se reinicia, cambia la URL.
 - La app queda accesible en `http://127.0.0.1:8080` desde el host y en la URL de Cloudflare desde Internet.
 
 ## 7. Apagado y copia de seguridad
 
-Apagar Ubuntu con `sudo poweroff` o cerrar la ventana de QEMU. Con la VM detenida, el disco completo se puede copiar:
+Apagar Ubuntu con `sudo poweroff` dentro de la VM o, desde el host:
+
+```bash
+virsh -c qemu:///session shutdown InstitutoBlazor
+```
+
+Cerrar la ventana de virt-manager no apaga la VM. Con la VM detenida, el disco completo se puede copiar:
 
 ```bash
 cp --sparse=always ~/VMs/InstitutoBlazor/instituto.raw \
   ~/VMs/InstitutoBlazor/instituto-$(date +%F).raw
 ```
 
-## 8. Nota sobre VirtualBox
+## 8. Si no aparece en virt-manager
+
+La causa habitual es estar mirando la conexión equivocada:
+
+```bash
+virsh -c qemu:///session list --all
+```
+
+Debe aparecer `InstitutoBlazor`. Si no aparece, ejecutá `./deploy/qemu/iniciar.sh`, que define el dominio desde `deploy/qemu/InstitutoBlazor.xml`. Luego abrí virt-manager con:
+
+```bash
+virt-manager -c qemu:///session
+```
+
+Para verla en la ventana principal de virt-manager, agregá **QEMU/KVM user session** como conexión. La conexión `QEMU/KVM` del sistema no muestra esta VM porque el disco vive en tu home y el dominio corre con tu usuario.
+
+## 9. Nota sobre VirtualBox
 
 VirtualBox 7.2.22 está instalado, pero en este equipo el kernel en ejecución (7.2.5) no tiene `kernel-devel` disponible en los repos; compilar `vboxdrv` requiere actualizar a 7.3.3 y reiniciar. Se optó por QEMU/KVM porque ya funcionaba sin esos pasos.

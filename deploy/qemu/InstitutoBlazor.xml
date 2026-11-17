@@ -1,0 +1,44 @@
+<domain type='kvm'>
+  <name>InstitutoBlazor</name>
+  <description>Ubuntu Server 26.04 LTS - InstitutoBlazor</description>
+  <memory unit='MiB'>6144</memory>
+  <vcpu placement='static'>4</vcpu>
+  <os>
+    <type arch='x86_64' machine='q35'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='host-passthrough' check='none'/>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw' cache='writeback' discard='unmap'/>
+      <source file='/ruta/al/disco/instituto.raw'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <interface type='user'>
+      <model type='virtio'/>
+      <backend type='passt'/>
+      <portForward proto='tcp' address='127.0.0.1'>
+        <range start='2222' to='22'/>
+      </portForward>
+      <portForward proto='tcp' address='127.0.0.1'>
+        <range start='8080' to='80'/>
+      </portForward>
+    </interface>
+    <graphics type='spice' autoport='yes'>
+      <listen type='address' address='127.0.0.1'/>
+    </graphics>
+    <video>
+      <model type='virtio'/>
+    </video>
+    <controller type='usb' model='qemu-xhci'/>
+    <input type='tablet' bus='usb'/>
+  </devices>
+</domain>
